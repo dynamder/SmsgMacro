@@ -1,114 +1,149 @@
 use crate::error::SmsgParseError;
 use crate::ir::{Field, FieldType, MessageDef, PrimitiveType, SmsgFile};
+use winnow::ascii::{alpha1, digit0, multispace0, multispace1};
+use winnow::combinator::opt;
+use winnow::error::{ErrMode, InputError};
+use winnow::prelude::*;
+use winnow::token::take_while;
+
+type WinnowError<'a> = InputError<&'a str>;
+type WinnowResult<'a, T> = Result<T, ErrMode<WinnowError<'a>>>;
 
 pub fn parse_smsg(input: &str) -> Result<SmsgFile, SmsgParseError> {
     let trimmed = input.trim();
+    let mut remaining = trimmed;
     let mut messages = Vec::new();
-    let lines: Vec<(usize, &str)> = trimmed
-        .lines()
-        .enumerate()
-        .map(|(i, l)| (i + 1, l.trim()))
-        .collect();
-    let mut i = 0;
     let mut seen_names = std::collections::HashSet::new();
 
-    while i < lines.len() {
-        let (line_num, line) = lines[i];
+    while !remaining.is_empty() {
+        if let Err(e) = multispace0::<&str, InputError<&str>>.parse_next(&mut remaining) {
+            return Err(SmsgParseError::new(
+                format!("Whitespace error: {:?}", e),
+                1,
+                1,
+            ));
+        }
 
-        if line.is_empty() || line.starts_with('#') {
-            i += 1;
+        if remaining.is_empty() {
+            break;
+        }
+
+        if remaining.starts_with('#') {
+            let _: Result<_, ErrMode<InputError<&str>>> =
+                take_while(0.., |c| c != '\n').parse_next(&mut remaining);
             continue;
         }
 
-        if line.starts_with("message") {
-            let rest = line.strip_prefix("message").ok_or_else(|| {
-                SmsgParseError::new("Invalid message keyword".to_string(), line_num, 1)
-            })?;
-            let name_with_brace = rest.trim();
-
-            let (name, brace_on_same_line) = if let Some(pos) = name_with_brace.find('{') {
-                let n = name_with_brace[..pos].trim();
-                (n.to_string(), true)
-            } else {
-                (name_with_brace.trim().to_string(), false)
-            };
-
-            if name.is_empty() {
+        match parse_message.parse_next(&mut remaining) {
+            Ok(msg) => {
+                if seen_names.contains(&msg.name) {
+                    let line = remaining.lines().count();
+                    return Err(SmsgParseError::duplicate_message(&msg.name, line));
+                }
+                seen_names.insert(msg.name.clone());
+                messages.push(msg);
+            }
+            Err(e) => {
+                let line = remaining.lines().count();
                 return Err(SmsgParseError::new(
-                    "Missing message name".to_string(),
-                    line_num,
+                    format!("Parse error: {:?}", e),
+                    line.max(1),
                     1,
                 ));
             }
-
-            if seen_names.contains(&name) {
-                return Err(SmsgParseError::duplicate_message(&name, line_num));
-            }
-            seen_names.insert(name.clone());
-
-            let mut fields = Vec::new();
-            let mut found_brace = brace_on_same_line;
-
-            if !found_brace {
-                i += 1;
-                if i < lines.len() && lines[i].1 == "{" {
-                    found_brace = true;
-                }
-            }
-
-            if !found_brace {
-                return Err(SmsgParseError::new("Expected '{'".to_string(), line_num, 1));
-            }
-
-            i += 1;
-
-            while i < lines.len() && lines[i].1 != "}" {
-                let (field_line, field_str) = lines[i];
-                if field_str.is_empty() || field_str.starts_with('#') {
-                    i += 1;
-                    continue;
-                }
-
-                let parts: Vec<&str> = field_str.split_whitespace().collect();
-                if parts.len() >= 2 {
-                    let field_type_str = parts[0];
-                    let field_name = parts[1];
-
-                    let field_type = parse_field_type(field_type_str)?;
-
-                    fields.push(Field {
-                        name: field_name.to_string(),
-                        field_type,
-                        line: field_line,
-                        col: 1,
-                    });
-                }
-                i += 1;
-            }
-
-            if i >= lines.len() {
-                return Err(SmsgParseError::new("Expected '}'".to_string(), line_num, 1));
-            }
-            i += 1;
-
-            messages.push(MessageDef {
-                name,
-                fields,
-                line: line_num,
-                col: 1,
-            });
-        } else {
-            i += 1;
         }
     }
 
     Ok(SmsgFile { messages })
 }
 
+fn parse_message<'a>(input: &mut &'a str) -> WinnowResult<'a, MessageDef> {
+    "message".parse_next(input)?;
+    multispace1.parse_next(input)?;
+    let name = alpha1.parse_next(input)?;
+    multispace0.parse_next(input)?;
+    "{".parse_next(input)?;
+
+    let mut fields = Vec::new();
+
+    loop {
+        multispace0.parse_next(input)?;
+
+        if input.starts_with('}') {
+            "}".parse_next(input)?;
+            break;
+        }
+
+        if input.starts_with('#') {
+            take_while(0.., |c| c != '\n').parse_next(input)?;
+            continue;
+        }
+
+        let field = parse_field.parse_next(input)?;
+        fields.push(field);
+    }
+
+    let line = input.lines().count();
+    Ok(MessageDef {
+        name: name.to_string(),
+        fields,
+        line,
+        col: 1,
+    })
+}
+
+fn parse_field<'a>(input: &mut &'a str) -> WinnowResult<'a, Field> {
+    let type_str: String = if input.contains('[') {
+        parse_array_type.parse_next(input)?
+    } else {
+        take_while(1.., |c| c != ' ' && c != '\t' && c != '\n')
+            .map(|s: &str| s.to_string())
+            .parse_next(input)?
+    };
+
+    multispace1.parse_next(input)?;
+    let name = take_while(1.., |c| c != ' ' && c != '\t' && c != '\n').parse_next(input)?;
+    multispace0.parse_next(input)?;
+    opt(";".value(())).parse_next(input)?;
+    multispace0.parse_next(input)?;
+
+    let line = input.lines().count();
+    let field_type =
+        parse_field_type(&type_str).map_err(|_e| ErrMode::Backtrack(InputError::at(*input)))?;
+
+    Ok(Field {
+        name: name.to_string(),
+        field_type,
+        line,
+        col: 1,
+    })
+}
+
+fn parse_array_type<'a>(input: &mut &'a str) -> WinnowResult<'a, String> {
+    let base_type =
+        take_while(1.., |c| c != ' ' && c != '\t' && c != '\n' && c != '[').parse_next(input)?;
+    "[".parse_next(input)?;
+    let size: Option<&str> = opt(digit0).parse_next(input)?;
+    "]".parse_next(input)?;
+
+    let result = if let Some(s) = size {
+        if s.is_empty() {
+            format!("{}[]", base_type)
+        } else {
+            format!("{}[{}]", base_type, s)
+        }
+    } else {
+        format!("{}[]", base_type)
+    };
+
+    Ok(result)
+}
+
 fn parse_field_type(type_str: &str) -> Result<FieldType, SmsgParseError> {
-    if let Some(arr_start) = type_str.find('[')
-        && let Some(arr_end) = type_str.find(']')
-    {
+    if let Some(arr_start) = type_str.find('[') {
+        let arr_end = type_str
+            .find(']')
+            .ok_or_else(|| SmsgParseError::new("Missing ']'".to_string(), 1, 1))?;
         let base_type = &type_str[..arr_start];
         let size_str = &type_str[arr_start + 1..arr_end];
 
