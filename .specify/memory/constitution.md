@@ -1,50 +1,108 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report - Constitution v1.0.0
+=========================================
+
+Version Change: N/A → 1.0.0 (New Constitution)
+
+New Principles Added:
+- I. Code Quality (NON-NEGIABLE)
+- II. User Experience First  
+- III. Testable Units (NON-NEGIABLE)
+- IV. Good Maintainability
+- V. Simple and Concise Code Style
+- VI. MVP First
+
+New Sections Added:
+- Additional Constraints (Technology Standards, Code Style Enforcement, Security Requirements)
+- Development Workflow (Quality Gates, Review Process, Deployment)
+- Governance (Amendment Procedure, Versioning Policy, Compliance)
+
+Templates Status:
+✅ plan-template.md - No changes required (Constitution Check section references constitution file)
+✅ spec-template.md - No changes required (already includes MVP and independent testability concepts)
+✅ tasks-template.md - No changes required (already includes MVP and user story organization)
+⚠ No command templates found to update
+
+Follow-up TODOs:
+- None
+
+-->
+
+# SoulMsg Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Code Quality (NON-NEGOTIABLE)
+All code MUST meet the following quality standards: Code MUST be self-documenting with clear variable and function names; Functions MUST NOT exceed 80 lines; Files MUST NOT exceed 600 lines; Cyclomatic complexity MUST remain below 10; Code MUST follow SOLID principles; All code changes MUST pass linting and type checking before merging.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. User Experience First
+Every feature MUST be designed with the end user in mind: User workflows MUST be intuitive and require minimal steps; Error messages MUST be clear, actionable, and user-friendly; 
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Testable Units (NON-NEGOTIABLE)
+All production code MUST be covered by unit tests: Every function/method MUST have at least one unit test; Test coverage MUST exceed 80% for core business logic; Tests MUST be fast (< 100ms per test suite); Tests MUST be independent and not depend on execution order; Mock external dependencies; Use Arrange-Act-Assert pattern.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Good Maintainability
+Codebase MUST be easy to understand, modify, and extend: Modules MUST have single responsibility; Dependencies MUST point inward (high-level modules depend on low-level modules); Configuration MUST be externalized (no hardcoded values); Documentation MUST explain "why" not just "what"; Technical debt MUST be tracked and addressed in sprint planning; Code reviews MUST verify maintainability.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Simple and Concise Code Style
+Complexity MUST be avoided unless absolutely necessary: Prefer explicit over implicit;  Use the simplest solution that works (YAGNI); Avoid clever code that sacrifices readability; Keep functions small and focused; Use meaningful names (no single-letter variables except loop counters); Remove dead code immediately.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### VI. MVP First
+Features MUST be delivered in minimum viable increments: Start with the smallest feature set that delivers value; User stories MUST be prioritized by business value; Each increment MUST be independently testable and deployable; Scope creep MUST be actively resisted;  Post-MVP features SHOULD be marked as enhancements.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## Additional Constraints
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### Technology Standards
+- use clippy
+- nom for parsing
+- All dependencies MUST have active maintenance and security support
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Code Style Enforcement
+- Prettier for formatting
+
+### Security Requirements
+- No secrets in source code (use environment variables)
+- Input validation on all user files
+
+## Development Workflow
+
+### Quality Gates (All MUST Pass)
+1. All tests MUST pass (unit, integration)
+2. Code coverage MUST meet threshold (80% core, 70% overall)
+3. Linting MUST pass with no warnings
+4. Type checking MUST pass with no errors
+5. Security scan MUST pass (no critical/high vulnerabilities)
+6. Code review MUST be approved by at least one reviewer
+
+### Review Process
+- PRs MUST have description of changes and rationale
+- PRs MUST link to related issue/task
+- Reviewers MUST verify: functionality, tests, style, documentation
+- Commits MUST be atomic and descriptive
+
+### Deployment
+- Only tested code MAY be deployed
+- Deployment artifacts MUST be reproducible
+- Rollback plan MUST exist for each deployment
+- Production deployments MUST be logged
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### Amendment Procedure
+1. Proposed changes MUST be documented with rationale
+2. Changes MUST be reviewed for impact on existing code
+3. Migration plan MUST be provided if breaking changes required
+4. Changes MUST be approved by project maintainer
+5. Version MUST be incremented per semantic versioning rules
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+### Versioning Policy
+- MAJOR: Backward incompatible API changes or principle redefinitions
+- MINOR: New principles or materially expanded guidance
+- PATCH: Clarifications, wording fixes, non-semantic refinements
+
+### Compliance
+- All team members MUST read and understand the constitution
+- Constitution compliance MUST be verified in code reviews
+- Violations MUST be documented with justification if accepted
+
+**Version**: 1.0.0 | **Ratified**: 2026-03-02 | **Last Amended**: 2026-03-02
