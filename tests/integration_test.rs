@@ -1,4 +1,5 @@
 use soul_msg::smsg;
+use zenoh_ext::{z_deserialize, z_serialize};
 
 #[smsg("tests/fixtures/messages.smsg")]
 pub mod test_messages {}
@@ -35,12 +36,8 @@ fn test_chat_message_serialization() {
         timestamp: 12345,
     };
 
-    let serialized = serde_json::to_string(&msg).unwrap();
-    assert!(serialized.contains("Alice"));
-    assert!(serialized.contains("Hello"));
-    assert!(serialized.contains("12345"));
-
-    let deserialized: test_messages::ChatMessage = serde_json::from_str(&serialized).unwrap();
+    let serialized = z_serialize(&msg);
+    let deserialized: test_messages::ChatMessage = z_deserialize(&serialized).unwrap();
     assert_eq!(deserialized.sender, "Alice");
     assert_eq!(deserialized.content, "Hello");
     assert_eq!(deserialized.timestamp, 12345);

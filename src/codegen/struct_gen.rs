@@ -49,8 +49,26 @@ fn generate_struct(message: &MessageDef) -> proc_macro2::TokenStream {
         })
         .collect();
 
+    let serialize_body: Vec<proc_macro2::TokenStream> = message
+        .fields
+        .iter()
+        .map(|f| {
+            let name = Ident::new(&f.name, proc_macro2::Span::call_site());
+            quote! { self.#name.serialize(serializer); }
+        })
+        .collect();
+
+    let deserialize_fields: Vec<proc_macro2::TokenStream> = message
+        .fields
+        .iter()
+        .map(|f| {
+            let name = Ident::new(&f.name, proc_macro2::Span::call_site());
+            quote! { #name: zenoh_ext::Deserialize::deserialize(deserializer)? }
+        })
+        .collect();
+
     quote! {
-        #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+        #[derive(Debug, Clone, PartialEq)]
         pub struct #struct_name {
             #(#field_idents),*
         }
@@ -66,6 +84,20 @@ fn generate_struct(message: &MessageDef) -> proc_macro2::TokenStream {
         impl Default for #struct_name {
             fn default() -> Self {
                 Self::new()
+            }
+        }
+
+        impl zenoh_ext::Serialize for #struct_name {
+            fn serialize(&self, serializer: &mut zenoh_ext::ZSerializer) {
+                #(#serialize_body)*
+            }
+        }
+
+        impl zenoh_ext::Deserialize for #struct_name {
+            fn deserialize(deserializer: &mut zenoh_ext::ZDeserializer) -> Result<Self, zenoh_ext::ZDeserializeError> {
+                Ok(#struct_name {
+                    #(#deserialize_fields),*
+                })
             }
         }
     }
