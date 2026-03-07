@@ -102,9 +102,13 @@ impl fmt::Display for PackageError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             PackageError::TomlParse(msg) => write!(f, "TOML parse error: {}", msg),
-            PackageError::MissingPackageSection => write!(f, "Missing [package] section in package.toml"),
+            PackageError::MissingPackageSection => {
+                write!(f, "Missing [package] section in package.toml")
+            }
             PackageError::MissingField(field) => write!(f, "Missing required field: {}", field),
-            PackageError::InvalidEdition(ed) => write!(f, "Invalid edition: {}. Expected '2026'", ed),
+            PackageError::InvalidEdition(ed) => {
+                write!(f, "Invalid edition: {}. Expected '2026'", ed)
+            }
             PackageError::FileNotFound(path) => write!(f, "File not found: {}", path),
             PackageError::IoError(e) => write!(f, "IO error: {}", e),
         }
