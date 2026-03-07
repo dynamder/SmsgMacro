@@ -1,5 +1,8 @@
+pub mod package_parser;
+pub mod import_resolver;
+
 use crate::error::SmsgParseError;
-use crate::ir::{Field, FieldType, MessageDef, PrimitiveType, SmsgFile};
+use crate::ir::{Field, FieldType, ImportStatement, MessageDef, PrimitiveType, SmsgFile};
 use winnow::ascii::{alpha1, digit0, multispace0, multispace1};
 use winnow::combinator::opt;
 use winnow::error::{ErrMode, InputError};
@@ -166,6 +169,69 @@ fn parse_field_type(type_str: &str) -> Result<FieldType, SmsgParseError> {
     }
 
     Ok(FieldType::Nested(type_str.to_string()))
+}
+
+pub fn parse_import(input: &str) -> Result<ImportStatement, SmsgParseError> {
+    let trimmed = input.trim();
+    let mut remaining = trimmed;
+
+    "import".parse_next(&mut remaining)
+        .map_err(|_: ErrMode<WinnowError<'_>>| SmsgParseError::new("Expected 'import' keyword".to_string(), 1, 1))?;
+    
+    multispace1.parse_next(&mut remaining)
+        .map_err(|_: ErrMode<WinnowError<'_>>| SmsgParseError::new("Expected whitespace after 'import'".to_string(), 1, 1))?;
+
+    let package: &str = take_while(1.., |c: char| c.is_ascii_alphanumeric() || c == '_')
+        .parse_next(&mut remaining)
+        .map_err(|_: ErrMode<WinnowError<'_>>| SmsgParseError::new("Invalid package name".to_string(), 1, 1))?;
+
+    if remaining.is_empty() {
+        return Err(SmsgParseError::new(
+            "Import must contain package and message type".to_string(), 
+            1, 1
+        ));
+    }
+
+    if !remaining.starts_with('.') {
+        return Err(SmsgParseError::new(
+            "Expected '.' after package name".to_string(), 
+            1, 1
+        ));
+    }
+
+    ".".parse_next(&mut remaining)
+        .map_err(|_: ErrMode<WinnowError<'_>>| SmsgParseError::new("Expected '.' after package name".to_string(), 1, 1))?;
+
+    if remaining.is_empty() {
+        return Err(SmsgParseError::new(
+            "Import must contain message type".to_string(), 
+            1, 1
+        ));
+    }
+
+    let all_parts: Vec<&str> = remaining
+        .split('.')
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    if all_parts.is_empty() {
+        return Err(SmsgParseError::new(
+            "Import must contain message type".to_string(), 
+            1, 1
+        ));
+    }
+
+    let message_type = all_parts[all_parts.len() - 1].to_string();
+    let module_parts: Vec<String> = all_parts[..all_parts.len() - 1]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+
+    Ok(ImportStatement {
+        package: package.to_string(),
+        module_path: module_parts,
+        message_type,
+    })
 }
 
 #[cfg(test)]

@@ -4,15 +4,15 @@
 
 **Rationale**: The syn crate provides robust parsing for proc macro attributes. Using `syn::parse_macro_input!` with syn's MetaList allows parsing both:
 1. Legacy string path: `#[smsg("path/to/file.smsg")]`
-2. New named attributes: `#[smsg(type = file, path = "path/to/file.smsg")]`
+2. New named attributes: `#[smsg(category = file, path = "path/to/file.smsg")]`
 
-The attribute value `type = file` uses an identifier (not a string literal), so we parse it as `syn::Ident`.
+The attribute value `category = file` uses an identifier (not a string literal), so we parse it as `syn::Ident`.
 
 ## Implementation Approach
 
 ### Option 1: Parse as MetaList (Recommended)
 - Use `syn::parse_macro_input!(attr as syn::MetaList)` to parse named attributes
-- Check if it's a list of name-value pairs (e.g., `type = file`)
+- Check if it's a list of name-value pairs (e.g., `category = file`)
 - Fall back to string parsing if not a MetaList
 
 ### Option 2: Parse as LitStr handle simple string path
@@ -24,7 +24,7 @@ The attribute value `type = file` uses an identifier (not a string literal), so 
 ## Syntax Details
 
 The new attribute syntax uses:
-- **Identifier** (not string literal) for `type` value: `type = file` (NOT `type = "file"`)
+- **Identifier** (not string literal) for `category` value: `category = file` (NOT `category = "file"`)
 - **String literal** for `path` value: `path = "path/to/file"` (quoted)
 
 This is the Rust convention - identifiers don't need quotes, string paths do.
@@ -39,7 +39,7 @@ This is the Rust convention - identifiers don't need quotes, string paths do.
 
 1. **Backward Compatibility**: Check if attribute is a simple string literal first
 2. **Error Handling**: Provide clear compile errors for invalid attribute syntax
-3. **Validation**: Validate `type` is either `file` or `package` (as identifiers)
+3. **Validation**: Validate `category` is either `file` or `package` (as identifiers)
 4. **Parser**: Use winnow (already in project) for any complex parsing needs
 
 ## Module Structure Generation (FR-013)

@@ -10,39 +10,39 @@ The `#[smsg]` proc macro attribute accepts two forms of input for specifying the
 #[smsg("path/to/messages.smsg")]
 ```
 
-**Equivalent to**: `#[smsg(type = file, path = "path/to/messages.smsg")]`
+**Equivalent to**: `#[smsg(category = file, path = "path/to/messages.smsg")]`
 
 ### Variant 2: Named Attributes (New Syntax)
 ```rust
-#[smsg(type = file, path = "path/to/messages.smsg")]
-#[smsg(type = package, path = "path/to/package")]
+#[smsg(category = file, path = "path/to/messages.smsg")]
+#[smsg(category = package, path = "path/to/package")]
 ```
 
 ## Attribute Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `type` | identifier | No | `file` | Source type: `file` or `package` (no quotes) |
+| `category` | identifier | No | `file` | Source category: `file` or `package` (no quotes) |
 | `path` | string literal | Yes | - | Path to .smsg file or package directory (quoted) |
 
 ## Error Cases
 
-### Invalid Type
+### Invalid Category
 ```rust
-#[smsg(type = invalid, path = "test.smsg")]
-// Error: type must be `file` or `package`
+#[smsg(category = invalid, path = "test.smsg")]
+// Error: category must be `file` or `package`
 ```
 
 ### Missing Path
 ```rust
-#[smsg(type = file)]
+#[smsg(category = file)]
 // Error: path is required
 ```
 
 ### Malformed Syntax
 ```rust
 #[smsg(not_an_attribute)]
-// Error: expected `type = identifier` or path string
+// Error: expected `category = identifier` or path string
 ```
 
 ## Usage Examples
@@ -56,20 +56,20 @@ mod msgs { }
 
 ### Single File (New Syntax)
 ```rust
-#[smsg(type = file, path = "messages/mymsg.smsg")]
+#[smsg(category = file, path = "messages/mymsg.smsg")]
 mod msgs { }
 ```
 
 ### Package
 ```rust
-#[smsg(type = package, path = "packages/mypackage")]
+#[smsg(category = package, path = "packages/mypackage")]
 mod pkg { }
 // Loads package.toml and parses all .smsg files in the package
 ```
 
 ## Module Structure Contract (FR-013)
 
-When using `type = package`, the generated Rust module structure MUST mirror the package folder structure:
+When using `category = package`, the generated Rust module structure MUST mirror the package folder structure:
 
 ```
 packages/mypackage/

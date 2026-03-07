@@ -24,7 +24,7 @@ mod msgs { }
 ```rust
 use soul_msg::smsg;
 
-#[smsg(type = file, path = "messages/my_message.smsg")]
+#[smsg(category = file, path = "messages/my_message.smsg")]
 mod msgs { }
 ```
 
@@ -53,13 +53,13 @@ Use in your code:
 ```rust
 use soul_msg::smsg;
 
-#[smsg(type = package, path = "packages/my_package")]
+#[smsg(category = package, path = "packages/my_package")]
 mod pkg { }
 ```
 
 ## Attribute Syntax
 
-- `type` value is an **identifier** (no quotes): `type = file`, `type = package`
+- `category` value is an **identifier** (no quotes): `category = file`, `category = package`
 - `path` value is a **string literal** (with quotes): `path = "path/to/file"`
 
 ## Package Structure

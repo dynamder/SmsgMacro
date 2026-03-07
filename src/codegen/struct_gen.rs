@@ -1,5 +1,5 @@
 use crate::codegen::CodeGenerator;
-use crate::ir::{FieldType, MessageDef, SmsgFile};
+use crate::ir::{FieldType, MessageDef, Module, ModuleStructure, SmsgFile};
 use proc_macro2::Ident;
 use quote::quote;
 
@@ -121,6 +121,64 @@ fn convert_field_type_to_rust(field_type: &FieldType) -> proc_macro2::TokenStrea
         FieldType::Nested(name) => {
             let ident = Ident::new(name, proc_macro2::Span::call_site());
             quote! { #ident }
+        }
+    }
+}
+
+pub struct ModuleGenerator;
+
+impl ModuleGenerator {
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub fn generate_module_structure(&self, module_structure: &ModuleStructure) -> proc_macro2::TokenStream {
+        let root_mod = &module_structure.root_module;
+        
+        let struct_impls: Vec<proc_macro2::TokenStream> = root_mod
+            .messages
+            .iter()
+            .map(generate_struct)
+            .collect();
+        
+        let child_mods: Vec<proc_macro2::TokenStream> = root_mod
+            .children
+            .iter()
+            .map(generate_module)
+            .collect();
+
+        quote! {
+            #(#struct_impls)*
+            #(#child_mods)*
+        }
+    }
+}
+
+impl Default for ModuleGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+fn generate_module(module: &Module) -> proc_macro2::TokenStream {
+    let module_name = Ident::new(&module.name, proc_macro2::Span::call_site());
+    
+    let struct_impls: Vec<proc_macro2::TokenStream> = module
+        .messages
+        .iter()
+        .map(generate_struct)
+        .collect();
+    
+    let child_mods: Vec<proc_macro2::TokenStream> = module
+        .children
+        .iter()
+        .map(generate_module)
+        .collect();
+
+    quote! {
+        pub mod #module_name {
+            #(#struct_impls)*
+            #(#child_mods)*
         }
     }
 }

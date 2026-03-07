@@ -6,7 +6,7 @@
 
 ## Summary
 
-Add attribute support to the `#[smsg]` macro to support both single file parsing (`type = file`) and package parsing (`type = package`). Package parsing includes: package.toml metadata/dependencies, import statements in .smsg files, and **generating Rust modules that mirror the package folder structure** (FR-013).
+Add attribute support to the `#[smsg]` macro to support both single file parsing (`category = file`) and package parsing (`category = package`). Package parsing includes: package.toml metadata/dependencies, import statements in .smsg files, and **generating Rust modules that mirror the package folder structure** (FR-013).
 
 ## Technical Context
 

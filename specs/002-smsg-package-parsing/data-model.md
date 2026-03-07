@@ -7,10 +7,10 @@ Represents the parsed attributes from `#[smsg(...)]`
 
 | Field | Type | Validation | Description |
 |-------|------|------------|-------------|
-| `source_type` | enum | `file` or `package` | Specifies whether to parse a single file or a package |
+| `category` | enum | `file` or `package` | Specifies whether to parse a single file or a package |
 | `path` | String | Required, valid path | Path to .smsg file or package directory |
 
-### SmsgPackage (for package type)
+### SmsgPackage (for package category)
 Represents a parsed SoulSmsg Package
 
 | Field | Type | Validation | Description |
@@ -67,17 +67,17 @@ Generate Rust structs + modules
 ## Validation Rules
 
 1. **Attribute Syntax**:
-   - String: `#[smsg("path")]` → `source_type=file`, `path="path"`
-   - Named: `#[smsg(type = file, path = "path")]` → parsed accordingly
+   - String: `#[smsg("path")]` → `category=file`, `path="path"`
+   - Named: `#[smsg(category = file, path = "path")]` → parsed accordingly
    
-2. **Type Validation**:
-   - `type` must be identifier `file` or `package` (no quotes)
-   - If `type` is omitted, default to `file` for backward compatibility
+2. **Category Validation**:
+   - `category` must be identifier `file` or `package` (no quotes)
+   - If `category` is omitted, default to `file` for backward compatibility
    
 3. **Path Validation**:
    - Path must be non-empty string literal
-   - For `file` type: path must point to a .smsg file
-   - For `package` type: path must point to a directory containing package.toml
+   - For `file` category: path must point to a .smsg file
+   - For `package` category: path must point to a directory containing package.toml
 
 4. **Module Structure Validation (FR-013)**:
    - Each subdirectory in the package becomes a nested `mod` in Rust

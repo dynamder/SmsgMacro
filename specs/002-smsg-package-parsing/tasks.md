@@ -29,9 +29,9 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 [P] Review existing project structure in src/ and Cargo.toml
-- [ ] T002 Add test dependencies to Cargo.toml for TOML parsing (toml crate)
-- [ ] T003 Create test fixtures directory tests/fixtures/packages/
+- [X] T001 [P] Review existing project structure in src/ and Cargo.toml
+- [X] T002 Add test dependencies to Cargo.toml for TOML parsing (toml crate)
+- [X] T003 Create test fixtures directory tests/fixtures/packages/
 
 ---
 
@@ -41,10 +41,10 @@ description: "Task list template for feature implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Update src/ir.rs - Add SmsgPackage struct with name, version, edition, dependencies fields per data-model.md
-- [ ] T005 Update src/ir.rs - Add Dependency struct with name and path fields per data-model.md
-- [ ] T006 [P] Update src/error.rs - Add PackageError enum variants for TOML parsing errors
-- [ ] T007 [P] Update src/error.rs - Add ImportError enum variants for import resolution errors
+- [X] T004 Update src/ir.rs - Add SmsgPackage struct with name, version, edition, dependencies fields per data-model.md
+- [X] T005 Update src/ir.rs - Add Dependency struct with name and path fields per data-model.md
+- [X] T006 [P] Update src/error.rs - Add PackageError enum variants for TOML parsing errors
+- [X] T007 [P] Update src/error.rs - Add ImportError enum variants for import resolution errors
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -58,20 +58,20 @@ description: "Task list template for feature implementation"
 
 ### Tests for User Story 1 (REQUIRED per spec.md)
 
-- [ ] T008 [P] [US1] Unit test: parse valid package.toml with all fields in tests/
-- [ ] T009 [P] [US1] Unit test: parse package.toml with multiple dependencies in tests/
-- [ ] T010 [P] [US1] Unit test: parse package.toml with no dependencies in tests/
-- [ ] T011 [US1] Unit test: error handling for missing [package] section in tests/
-- [ ] T012 [US1] Unit test: error handling for missing required fields in tests/
+- [X] T008 [P] [US1] Unit test: parse valid package.toml with all fields in tests/
+- [X] T009 [P] [US1] Unit test: parse package.toml with multiple dependencies in tests/
+- [X] T010 [P] [US1] Unit test: parse package.toml with no dependencies in tests/
+- [X] T011 [US1] Unit test: error handling for missing [package] section in tests/
+- [X] T012 [US1] Unit test: error handling for missing required fields in tests/
 
 ### Implementation for User Story 1
 
-- [ ] T013 [P] [US1] Create src/parser/package_parser.rs - Implement TOML parser for package.toml using toml crate
-- [ ] T014 [P] [US1] Add ModuleStructure and Module structs to src/ir.rs per data-model.md
-- [ ] T015 [US1] Implement parse_package_toml function in src/parser/package_parser.rs (FR-001, FR-002)
-- [ ] T016 [US1] Implement parse_dependencies function in src/parser/package_parser.rs (FR-003, FR-004, FR-005)
-- [ ] T017 [US1] Validate edition field is "2026" per FR-002
-- [ ] T018 [US1] Run cargo test to verify US1 tests pass
+- [X] T013 [P] [US1] Create src/parser/package_parser.rs - Implement TOML parser for package.toml using toml crate
+- [X] T014 [P] [US1] Add ModuleStructure and Module structs to src/ir.rs per data-model.md
+- [X] T015 [US1] Implement parse_package_toml function in src/parser/package_parser.rs (FR-001, FR-002)
+- [X] T016 [US1] Implement parse_dependencies function in src/parser/package_parser.rs (FR-003, FR-004, FR-005)
+- [X] T017 [US1] Validate edition field is "2026" per FR-002
+- [X] T018 [US1] Run cargo test to verify US1 tests pass
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -85,18 +85,18 @@ description: "Task list template for feature implementation"
 
 ### Tests for User Story 2 (REQUIRED per spec.md)
 
-- [ ] T019 [P] [US2] Unit test: parse valid import statement "import package.module_path.msg_type" in tests/
-- [ ] T020 [P] [US2] Unit test: error for invalid package name in import in tests/
-- [ ] T021 [US2] Unit test: error for malformed import syntax in tests/
+- [X] T019 [P] [US2] Unit test: parse valid import statement "import package.module_path.msg_type" in tests/
+- [X] T020 [P] [US2] Unit test: error for invalid package name in import in tests/
+- [X] T021 [US2] Unit test: error for malformed import syntax in tests/
 
 ### Implementation for User Story 2
 
-- [ ] T022 [P] [US2] Extend src/parser/mod.rs - Add import statement parser using winnow
-- [ ] T023 [P] [US2] Add ImportStatement struct to src/ir.rs (package, module_path, message_type fields)
-- [ ] T024 [US2] Implement import resolution logic in src/parser/import_resolver.rs (FR-006, FR-007)
-- [ ] T025 [US2] Implement dependency path resolution relative to package.toml per FR-010
-- [ ] T026 [US2] Implement error handling for unresolvable imports per FR-009
-- [ ] T027 [US2] Run cargo test to verify US2 tests pass
+- [X] T022 [P] [US2] Extend src/parser/mod.rs - Add import statement parser using winnow
+- [X] T023 [P] [US2] Add ImportStatement struct to src/ir.rs (package, module_path, message_type fields)
+- [X] T024 [US2] Implement import resolution logic in src/parser/import_resolver.rs (FR-006, FR-007)
+- [X] T025 [US2] Implement dependency path resolution relative to package.toml per FR-010
+- [X] T026 [US2] Implement error handling for unresolvable imports per FR-009
+- [X] T027 [US2] Run cargo test to verify US2 tests pass
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -110,30 +110,30 @@ description: "Task list template for feature implementation"
 
 ### Tests for User Story 3 (REQUIRED per spec.md)
 
-- [ ] T028 [P] [US3] Unit test: generate module structure for nested directories in tests/
-- [ ] T029 [P] [US3] Unit test: validate module names are valid Rust identifiers in tests/
-- [ ] T030 [US3] Integration test: generate complete Rust code for sample package in tests/
+- [X] T028 [P] [US3] Unit test: generate module structure for nested directories in tests/
+- [X] T029 [P] [US3] Unit test: validate module names are valid Rust identifiers in tests/
+- [X] T030 [US3] Integration test: generate complete Rust code for sample package in tests/
 
 ### Implementation for User Story 3
 
-- [ ] T031 [P] [US3] Implement package directory walker in src/parser/package_parser.rs (FR-013)
-- [ ] T032 [P] [US3] Update src/codegen/struct_gen.rs - Add module structure generation logic
-- [ ] T033 [US3] Implement nested mod block generation in src/codegen/struct_gen.rs (FR-013)
-- [ ] T034 [US3] Implement module sandboxing (enforce FR-011 - packages cannot access files outside root)
-- [ ] T035 [US3] Run cargo test to verify US3 tests pass
+- [X] T031 [P] [US3] Implement package directory walker in src/parser/package_parser.rs (FR-013)
+- [X] T032 [P] [US3] Update src/codegen/struct_gen.rs - Add module structure generation logic
+- [X] T033 [US3] Implement nested mod block generation in src/codegen/struct_gen.rs (FR-013)
+- [X] T034 [US3] Implement module sandboxing (enforce FR-011 - packages cannot access files outside root)
+- [X] T035 [US3] Run cargo test to verify US3 tests pass
 
 **Checkpoint**: All user stories should now be independently functional
 
 ---
 
-## Phase 6: Integrate Macro Attribute Parsing (Type = package)
+## Phase 6: Integrate Macro Attribute Parsing (Category = package)
 
-**Purpose**: Update the main #[smsg] macro to support the new type = package attribute
+**Purpose**: Update the main #[smsg] macro to support the new category = package attribute
 
-- [ ] T036 Update src/lib.rs - Extend attribute parsing to support type = package syntax per contracts/macro-attributes.md
-- [ ] T037 Implement package loading flow in src/lib.rs (load package.toml, parse all .smsg files, generate module structure)
-- [ ] T038 Ensure backward compatibility with existing string syntax per contract
-- [ ] T039 Run cargo test to verify full integration works
+- [X] T036 Update src/lib.rs - Extend attribute parsing to support category = package syntax per contracts/macro-attributes.md
+- [X] T037 Implement package loading flow in src/lib.rs (load package.toml, parse all .smsg files, generate module structure)
+- [X] T038 Ensure backward compatibility with existing string syntax per contract
+- [X] T039 Run cargo test to verify full integration works
 
 ---
 
@@ -141,11 +141,11 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T040 [P] Update quickstart.md with package parsing examples if needed
-- [ ] T041 Run cargo clippy and fix any warnings
+- [X] T040 [P] Update quickstart.md with package parsing examples if needed
+- [X] T041 Run cargo clippy and fix any warnings
 - [ ] T042 [P] Add integration test in tests/integration_test.rs covering full package workflow
-- [ ] T043 Run quickstart.md validation scenarios from quickstart.md
-- [ ] T044 Run cargo test (full test suite)
+- [X] T043 Run quickstart.md validation scenarios from quickstart.md
+- [X] T044 Run cargo test (full test suite)
 
 ---
 
