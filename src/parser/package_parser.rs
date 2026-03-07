@@ -274,6 +274,62 @@ dep3 = "3.0.0"
         assert!(!is_valid_rust_identifier("my-module"));
         assert!(!is_valid_rust_identifier("my module"));
     }
+
+    #[test]
+    fn test_error_invalid_edition() {
+        let toml_content = r#"
+[package]
+name = "mypackage"
+version = "1.0.0"
+edition = "2024"
+"#;
+        let result = parse_package_toml(toml_content, "tests/fixtures/packages/test_pkg");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        let err_str = err.to_string();
+        assert!(err_str.contains("edition") || err_str.contains("2026"));
+    }
+
+    #[test]
+    fn test_error_toml_parse_failure() {
+        let toml_content = r#"
+[package
+name = "mypackage"
+"#;
+        let result = parse_package_toml(toml_content, "tests/fixtures/packages/test_pkg");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        let err_str = err.to_string();
+        assert!(err_str.contains("TOML") || err_str.contains("parse"));
+    }
+
+    #[test]
+    fn test_error_missing_version() {
+        let toml_content = r#"
+[package]
+name = "mypackage"
+edition = "2026"
+"#;
+        let result = parse_package_toml(toml_content, "tests/fixtures/packages/test_pkg");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        let err_str = err.to_string();
+        assert!(err_str.contains("version") || err_str.contains("Missing"));
+    }
+
+    #[test]
+    fn test_error_missing_name() {
+        let toml_content = r#"
+[package]
+version = "1.0.0"
+edition = "2026"
+"#;
+        let result = parse_package_toml(toml_content, "tests/fixtures/packages/test_pkg");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        let err_str = err.to_string();
+        assert!(err_str.contains("name") || err_str.contains("Missing"));
+    }
 }
 
 pub fn is_valid_rust_identifier(name: &str) -> bool {

@@ -277,4 +277,106 @@ message RobotState {
         let result = parse_smsg(input).unwrap();
         assert_eq!(result.messages.len(), 2);
     }
+
+    #[test]
+    fn test_parse_error_invalid_keyword() {
+        let input = r#"msg ChatMessage {
+    string sender
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.message.contains("Parse error") || err.message.contains("message"));
+        assert!(err.line > 0);
+    }
+
+    #[test]
+    fn test_parse_error_missing_brace() {
+        let input = r#"message ChatMessage 
+    string sender
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.line > 0);
+    }
+
+    #[test]
+    fn test_parse_error_missing_field_name() {
+        let input = r#"message ChatMessage {
+    string 
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.line > 0);
+    }
+
+    #[test]
+    fn test_parse_error_unclosed_bracket() {
+        let input = r#"message ChatMessage {
+    string[ sender
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.line > 0);
+    }
+
+    #[test]
+    fn test_parse_error_empty_message_name() {
+        let input = r#"message  {
+    string sender
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_error_invalid_array_size() {
+        let input = r#"message ChatMessage {
+    string[abc] field1
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.message.contains("array") || err.message.contains("Parse error"));
+    }
+
+    #[test]
+    fn test_parse_error_missing_closing_bracket() {
+        let input = r#"message ChatMessage {
+    string sender"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.line > 0);
+    }
+
+    #[test]
+    fn test_error_message_contains_line_info() {
+        let input = r#"message TestMessage {
+    invalid_syntax here is some more text to trigger error
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        let err_str = err.to_string();
+        assert!(err_str.contains("line") || err_str.contains("column"));
+    }
+
+    #[test]
+    fn test_parse_error_duplicate_message() {
+        let input = r#"message ChatMessage {
+    string sender
+}
+
+message ChatMessage {
+    string content
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.message.contains("Duplicate") || err.message.contains("already exists"));
+    }
 }

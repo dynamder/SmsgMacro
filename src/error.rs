@@ -5,12 +5,26 @@ pub struct SmsgParseError {
     pub message: String,
     pub line: usize,
     pub col: usize,
+    pub source: Option<String>,
 }
 
 impl SmsgParseError {
-    #[allow(dead_code)]
     pub fn new(message: String, line: usize, col: usize) -> Self {
-        Self { message, line, col }
+        Self {
+            message,
+            line,
+            col,
+            source: None,
+        }
+    }
+
+    pub fn with_source(message: String, line: usize, col: usize, source: String) -> Self {
+        Self {
+            message,
+            line,
+            col,
+            source: Some(source),
+        }
     }
 
     #[allow(dead_code)]
@@ -19,6 +33,7 @@ impl SmsgParseError {
             message: format!("File not found: {}", path),
             line: 0,
             col: 0,
+            source: None,
         }
     }
 
@@ -28,6 +43,7 @@ impl SmsgParseError {
             message: format!("Invalid type: {}", type_name),
             line,
             col,
+            source: None,
         }
     }
 
@@ -36,6 +52,18 @@ impl SmsgParseError {
             message: format!("Duplicate message definition: {}", name),
             line: line_num,
             col: 0,
+            source: None,
+        }
+    }
+
+    pub fn to_compile_error(&self) -> String {
+        if self.line > 0 {
+            format!(
+                "error: {} at line {}, column {}",
+                self.message, self.line, self.col
+            )
+        } else {
+            format!("error: {}", self.message)
         }
     }
 }
@@ -81,8 +109,8 @@ impl fmt::Display for PackageError {
 
 impl std::error::Error for PackageError {}
 
-#[derive(Debug)]
 #[allow(dead_code)]
+#[derive(Debug)]
 pub enum ImportError {
     InvalidPackageName(String),
     MalformedSyntax(String),

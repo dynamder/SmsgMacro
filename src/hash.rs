@@ -114,3 +114,296 @@ pub fn compare_messages(
     
     CompatibilityReport { status, details }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ir::{Field, FieldType, PrimitiveType};
+
+    #[test]
+    fn test_compute_message_hash_returns_32_bytes() {
+        let msg = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::String),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let hash = compute_message_hash(&msg);
+        assert_eq!(hash.len(), 32);
+    }
+
+    #[test]
+    fn test_different_messages_produce_different_hashes() {
+        let msg1 = MessageDef {
+            name: "MessageA".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::String),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let msg2 = MessageDef {
+            name: "MessageB".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::String),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let hash1 = compute_message_hash(&msg1);
+        let hash2 = compute_message_hash(&msg2);
+        assert_ne!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_field_addition_changes_hash() {
+        let msg1 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::String),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let msg2 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![
+                Field {
+                    name: "field1".to_string(),
+                    field_type: FieldType::Primitive(PrimitiveType::String),
+                    line: 1,
+                    col: 1,
+                },
+                Field {
+                    name: "field2".to_string(),
+                    field_type: FieldType::Primitive(PrimitiveType::Int32),
+                    line: 2,
+                    col: 1,
+                },
+            ],
+            line: 1,
+            col: 1,
+        };
+        let hash1 = compute_message_hash(&msg1);
+        let hash2 = compute_message_hash(&msg2);
+        assert_ne!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_field_removal_changes_hash() {
+        let msg1 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![
+                Field {
+                    name: "field1".to_string(),
+                    field_type: FieldType::Primitive(PrimitiveType::String),
+                    line: 1,
+                    col: 1,
+                },
+                Field {
+                    name: "field2".to_string(),
+                    field_type: FieldType::Primitive(PrimitiveType::Int32),
+                    line: 2,
+                    col: 1,
+                },
+            ],
+            line: 1,
+            col: 1,
+        };
+        let msg2 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::String),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let hash1 = compute_message_hash(&msg1);
+        let hash2 = compute_message_hash(&msg2);
+        assert_ne!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_field_type_change_changes_hash() {
+        let msg1 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::String),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let msg2 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::Int32),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let hash1 = compute_message_hash(&msg1);
+        let hash2 = compute_message_hash(&msg2);
+        assert_ne!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_field_name_change_changes_hash() {
+        let msg1 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "fieldA".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::String),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let msg2 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "fieldB".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::String),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let hash1 = compute_message_hash(&msg1);
+        let hash2 = compute_message_hash(&msg2);
+        assert_ne!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_array_type_changes_hash() {
+        let msg1 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::String),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let msg2 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Array(Box::new(FieldType::Primitive(PrimitiveType::String)), None),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let hash1 = compute_message_hash(&msg1);
+        let hash2 = compute_message_hash(&msg2);
+        assert_ne!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_nested_type_changes_hash() {
+        let msg1 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Primitive(PrimitiveType::String),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let msg2 = MessageDef {
+            name: "TestMessage".to_string(),
+            fields: vec![Field {
+                name: "field1".to_string(),
+                field_type: FieldType::Nested("CustomType".to_string()),
+                line: 1,
+                col: 1,
+            }],
+            line: 1,
+            col: 1,
+        };
+        let hash1 = compute_message_hash(&msg1);
+        let hash2 = compute_message_hash(&msg2);
+        assert_ne!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_compare_hashes_identical() {
+        let hash1: [u8; 32] = [0u8; 32];
+        let hash2: [u8; 32] = [0u8; 32];
+        assert!(compare_hashes(&hash1, &hash2));
+    }
+
+    #[test]
+    fn test_compare_hashes_different() {
+        let hash1: [u8; 32] = [0u8; 32];
+        let hash2: [u8; 32] = [1u8; 32];
+        assert!(!compare_hashes(&hash1, &hash2));
+    }
+
+    #[test]
+    fn test_compare_messages_all_match() {
+        let messages1 = vec![("Msg1", [0u8; 32]), ("Msg2", [1u8; 32])];
+        let messages2 = vec![("Msg1", [0u8; 32]), ("Msg2", [1u8; 32])];
+        let report = compare_messages(&messages1, &messages2);
+        assert_eq!(report.status, CompatibilityStatus::Match);
+        assert!(report.details.is_empty());
+    }
+
+    #[test]
+    fn test_compare_messages_mismatch() {
+        let messages1 = vec![("Msg1", [0u8; 32])];
+        let messages2 = vec![("Msg1", [1u8; 32])];
+        let report = compare_messages(&messages1, &messages2);
+        assert_eq!(report.status, CompatibilityStatus::Mismatch);
+        assert_eq!(report.details.len(), 1);
+        assert_eq!(report.details[0].message_name, "Msg1");
+    }
+
+    #[test]
+    fn test_compare_messages_different_count() {
+        let messages1 = vec![("Msg1", [0u8; 32]), ("Msg2", [1u8; 32])];
+        let messages2 = vec![("Msg1", [0u8; 32])];
+        let report = compare_messages(&messages1, &messages2);
+        assert_eq!(report.status, CompatibilityStatus::Mismatch);
+        assert_eq!(report.details.len(), 1);
+    }
+
+    #[test]
+    fn test_compare_messages_missing_in_both() {
+        let messages1 = vec![("Msg1", [0u8; 32])];
+        let messages2 = vec![("Msg2", [1u8; 32])];
+        let report = compare_messages(&messages1, &messages2);
+        assert_eq!(report.status, CompatibilityStatus::Mismatch);
+        assert_eq!(report.details.len(), 2);
+    }
+}
