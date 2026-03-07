@@ -1,27 +1,16 @@
 <!--
-Sync Impact Report - Constitution v1.0.0
-=========================================
+Sync Impact Report - Constitution v1.0.1
+========================================
 
-Version Change: N/A → 1.0.0 (New Constitution)
+Version Change: 1.0.0 → 1.0.1 (PATCH)
 
-New Principles Added:
-- I. Code Quality (NON-NEGIABLE)
-- II. User Experience First  
-- III. Testable Units (NON-NEGIABLE)
-- IV. Good Maintainability
-- V. Simple and Concise Code Style
-- VI. MVP First
-
-New Sections Added:
-- Additional Constraints (Technology Standards, Code Style Enforcement, Security Requirements)
-- Development Workflow (Quality Gates, Review Process, Deployment)
-- Governance (Amendment Procedure, Versioning Policy, Compliance)
+Modified Principles:
+- Technology Standards: Changed "nom" to "winnow" for parsing library
 
 Templates Status:
-✅ plan-template.md - No changes required (Constitution Check section references constitution file)
-✅ spec-template.md - No changes required (already includes MVP and independent testability concepts)
-✅ tasks-template.md - No changes required (already includes MVP and user story organization)
-⚠ No command templates found to update
+✅ plan-template.md - Already aligned (uses winnow)
+✅ spec-template.md - No changes required
+✅ tasks_template.md - No changes required
 
 Follow-up TODOs:
 - None
@@ -54,7 +43,7 @@ Features MUST be delivered in minimum viable increments: Start with the smallest
 
 ### Technology Standards
 - use clippy
-- nom for parsing
+- winnow for parsing
 - All dependencies MUST have active maintenance and security support
 
 ### Code Style Enforcement
@@ -105,4 +94,4 @@ Features MUST be delivered in minimum viable increments: Start with the smallest
 - Constitution compliance MUST be verified in code reviews
 - Violations MUST be documented with justification if accepted
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-02 | **Last Amended**: 2026-03-02
+**Version**: 1.0.1 | **Ratified**: 2026-03-02 | **Last Amended**: 2026-03-07
