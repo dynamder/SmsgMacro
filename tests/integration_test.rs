@@ -415,4 +415,185 @@ mod smsg_envelope_tests {
         assert_eq!(*envelope1.version_hash(), expected_hash);
         assert_eq!(*envelope2.version_hash(), expected_hash);
     }
+
+    #[test]
+    fn test_version_hash_preserved_after_serialization() {
+        let original_sender = "Test".to_string();
+        let original_content = "Serialization test".to_string();
+        let original_timestamp = 12345i64;
+
+        let original = test_messages::ChatMessage {
+            sender: original_sender.clone(),
+            content: original_content.clone(),
+            timestamp: original_timestamp,
+        };
+
+        let envelope = SmsgEnvelope::new(original);
+        let original_hash = *envelope.version_hash();
+
+        let serialized = z_serialize(&envelope.payload);
+        let deserialized: test_messages::ChatMessage = z_deserialize(&serialized).unwrap();
+
+        let deserialized_sender = deserialized.sender.clone();
+        let deserialized_content = deserialized.content.clone();
+
+        let new_envelope = SmsgEnvelope::new(deserialized);
+        let deserialized_hash = *new_envelope.version_hash();
+
+        assert_eq!(original_hash, deserialized_hash);
+        assert_eq!(original_sender, deserialized_sender);
+        assert_eq!(original_content, deserialized_content);
+    }
+
+    #[test]
+    fn test_version_mismatch_detection_between_different_messages() {
+        let chat_msg = test_messages::ChatMessage {
+            sender: "Alice".to_string(),
+            content: "Hello".to_string(),
+            timestamp: 100,
+        };
+        let chat_envelope = SmsgEnvelope::new(chat_msg);
+
+        let pos_msg = test_messages::Position {
+            x: 1.0,
+            y: 2.0,
+            z: 3.0,
+        };
+        let pos_envelope = SmsgEnvelope::new(pos_msg);
+
+        let chat_hash = *chat_envelope.version_hash();
+        let pos_hash = *pos_envelope.version_hash();
+
+        assert_ne!(chat_hash, pos_hash);
+    }
+
+    #[test]
+    fn test_version_hash_matches_trait_method() {
+        let msg = test_messages::RobotState {
+            name: "TestBot".to_string(),
+            position: test_messages::Position {
+                x: 10.0,
+                y: 20.0,
+                z: 30.0,
+            },
+            status: 5,
+        };
+
+        let envelope = SmsgEnvelope::new(msg);
+
+        let expected_hash = test_messages::RobotState::version_hash();
+        let envelope_hash = *envelope.version_hash();
+
+        assert_eq!(envelope_hash, expected_hash);
+    }
+
+    #[test]
+    fn test_message_name_matches_trait_method() {
+        assert_eq!(test_messages::ChatMessage::message_name(), "ChatMessage");
+    }
+
+    #[test]
+    fn test_version_comparison_after_roundtrip() {
+        let original_msg = test_messages::Position {
+            x: 42.0,
+            y: 43.0,
+            z: 44.0,
+        };
+
+        let original_envelope = SmsgEnvelope::new(original_msg);
+        let original_version = *original_envelope.version_hash();
+
+        let serialized = z_serialize(&original_envelope.payload);
+        let deserialized: test_messages::Position = z_deserialize(&serialized).unwrap();
+
+        let reconstructed_envelope = SmsgEnvelope::new(deserialized);
+        let reconstructed_version = *reconstructed_envelope.version_hash();
+
+        assert_eq!(original_version, reconstructed_version);
+        assert_eq!(original_envelope.payload.x, reconstructed_envelope.payload.x);
+        assert_eq!(original_envelope.payload.y, reconstructed_envelope.payload.y);
+        assert_eq!(original_envelope.payload.z, reconstructed_envelope.payload.z);
+    }
+
+    #[test]
+    fn test_multiple_messages_same_type_same_hash() {
+        let msg1 = test_messages::ChatMessage {
+            sender: "First".to_string(),
+            content: "Message 1".to_string(),
+            timestamp: 1,
+        };
+        let msg2 = test_messages::ChatMessage {
+            sender: "Second".to_string(),
+            content: "Message 2".to_string(),
+            timestamp: 2,
+        };
+        let msg3 = test_messages::ChatMessage {
+            sender: "Third".to_string(),
+            content: "Message 3".to_string(),
+            timestamp: 3,
+        };
+
+        let envelope1 = SmsgEnvelope::new(msg1);
+        let envelope2 = SmsgEnvelope::new(msg2);
+        let envelope3 = SmsgEnvelope::new(msg3);
+
+        let hash1 = *envelope1.version_hash();
+        let hash2 = *envelope2.version_hash();
+        let hash3 = *envelope3.version_hash();
+
+        assert_eq!(hash1, hash2);
+        assert_eq!(hash2, hash3);
+    }
+
+    #[test]
+    fn test_serialization_preserves_all_fields() {
+        let original = test_messages::RobotState {
+            name: "R2-D2".to_string(),
+            position: test_messages::Position {
+                x: 100.5,
+                y: 200.5,
+                z: 300.5,
+            },
+            status: 42,
+        };
+
+        let envelope = SmsgEnvelope::new(original);
+        
+        let serialized = z_serialize(&envelope.payload);
+        let deserialized: test_messages::RobotState = z_deserialize(&serialized).unwrap();
+
+        assert_eq!(deserialized.name, "R2-D2");
+        assert_eq!(deserialized.position.x, 100.5);
+        assert_eq!(deserialized.position.y, 200.5);
+        assert_eq!(deserialized.position.z, 300.5);
+        assert_eq!(deserialized.status, 42);
+    }
+
+    #[test]
+    fn test_verify_version_at_runtime() {
+        fn verify_version<M: MessageMeta + zenoh_ext::Serialize + zenoh_ext::Deserialize>(
+            msg: M,
+            expected_hash: [u8; 32],
+        ) -> bool {
+            let envelope = SmsgEnvelope::new(msg);
+            let version = *envelope.version_hash();
+            
+            let serialized = z_serialize(&envelope.payload);
+            let deserialized: M = z_deserialize(&serialized).unwrap();
+            
+            let reconstructed_envelope = SmsgEnvelope::new(deserialized);
+            let reconstructed_version = *reconstructed_envelope.version_hash();
+            
+            version == expected_hash && reconstructed_version == expected_hash
+        }
+
+        let msg = test_messages::ChatMessage {
+            sender: "Runtime".to_string(),
+            content: "Verification".to_string(),
+            timestamp: 99999,
+        };
+
+        let expected_hash = test_messages::ChatMessage::version_hash();
+        assert!(verify_version(msg, expected_hash));
+    }
 }

@@ -103,7 +103,7 @@ pub fn walk_package_directory(dir_path: &std::path::Path) -> std::io::Result<Vec
             let path = entry.path();
             if path.is_dir() {
                 visit_dir(&path, files)?;
-            } else if path.extension().map_or(false, |ext| ext == "smsg") {
+            } else if path.extension().is_some_and(|ext| ext == "smsg") {
                 files.push(path);
             }
         }
