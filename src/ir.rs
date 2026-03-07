@@ -142,6 +142,7 @@ impl Module {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+#[allow(dead_code)]
 pub struct ImportStatement {
     pub package: String,
     pub module_path: Vec<String>,

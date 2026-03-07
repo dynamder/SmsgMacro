@@ -1,6 +1,7 @@
 use std::fmt;
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct SmsgParseError {
     pub message: String,
     pub line: usize,
@@ -18,6 +19,7 @@ impl SmsgParseError {
         }
     }
 
+    #[allow(dead_code)]
     pub fn with_source(message: String, line: usize, col: usize, source: String) -> Self {
         Self {
             message,
@@ -56,6 +58,7 @@ impl SmsgParseError {
         }
     }
 
+    #[allow(dead_code)]
     pub fn to_compile_error(&self) -> String {
         if self.line > 0 {
             format!(
@@ -85,6 +88,7 @@ impl fmt::Display for SmsgParseError {
 impl std::error::Error for SmsgParseError {}
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum PackageError {
     TomlParse(String),
     MissingPackageSection,

@@ -171,6 +171,7 @@ fn parse_field_type(type_str: &str) -> Result<FieldType, SmsgParseError> {
     Ok(FieldType::Nested(type_str.to_string()))
 }
 
+#[allow(dead_code)]
 pub fn parse_import(input: &str) -> Result<ImportStatement, SmsgParseError> {
     let trimmed = input.trim();
     let mut remaining = trimmed;

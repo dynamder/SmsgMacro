@@ -48,6 +48,7 @@ pub fn parse_package_toml(content: &str, _base_path: &str) -> Result<SmsgPackage
     })
 }
 
+#[allow(dead_code)]
 pub fn parse_dependencies(deps_toml: &str) -> Vec<Dependency> {
     if deps_toml.trim().is_empty() {
         return Vec::new();
@@ -332,6 +333,7 @@ edition = "2026"
     }
 }
 
+#[allow(dead_code)]
 pub fn is_valid_rust_identifier(name: &str) -> bool {
     if name.is_empty() {
         return false;

@@ -2,12 +2,14 @@ use crate::error::ImportError;
 use crate::ir::{Dependency, ImportStatement};
 use std::path::PathBuf;
 
+#[allow(dead_code)]
 pub struct ImportResolver {
     package_root: PathBuf,
     dependencies: Vec<Dependency>,
 }
 
 impl ImportResolver {
+    #[allow(dead_code)]
     pub fn new(package_root: PathBuf, dependencies: Vec<Dependency>) -> Self {
         Self {
             package_root,
@@ -15,6 +17,7 @@ impl ImportResolver {
         }
     }
 
+    #[allow(dead_code)]
     pub fn resolve(&self, import: &ImportStatement) -> Result<ResolvedImport, ImportError> {
         self.validate_package_name(&import.package)?;
 
@@ -43,6 +46,7 @@ impl ImportResolver {
         })
     }
 
+    #[allow(dead_code)]
     fn validate_package_name(&self, name: &str) -> Result<(), ImportError> {
         if name.is_empty() {
             return Err(ImportError::InvalidPackageName(
@@ -70,6 +74,7 @@ impl ImportResolver {
         Ok(())
     }
 
+    #[allow(dead_code)]
     fn find_dependency_path(&self, package_name: &str) -> Result<String, ImportError> {
         for dep in &self.dependencies {
             if dep.name == package_name {
@@ -85,6 +90,7 @@ impl ImportResolver {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ResolvedImport {
     pub package_name: String,
     pub package_path: PathBuf,
@@ -93,6 +99,7 @@ pub struct ResolvedImport {
 }
 
 impl ResolvedImport {
+    #[allow(dead_code)]
     pub fn get_smsg_file_path(&self) -> Option<PathBuf> {
         if self.module_path.is_empty() {
             return None;
