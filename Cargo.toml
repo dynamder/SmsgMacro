@@ -1,5 +1,5 @@
 [package]
-name = "soul_msg"
+name = "smsg_macro"
 version = "0.1.0"
 edition = "2024"
 
