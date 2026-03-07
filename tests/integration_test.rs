@@ -1,5 +1,5 @@
 use smsg_macro::smsg;
-use soul_msg::{MessageMeta, SmsgEnvelope};
+use soul_msg::{EnvelopeError, MessageMeta, SmsgEnvelope};
 use zenoh_ext::{z_deserialize, z_serialize};
 
 mod file_type_tests {
