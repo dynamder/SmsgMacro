@@ -21,3 +21,4 @@ blake3 = "1.5"
 zenoh-ext = "1.7"
 toml = "0.8"
 tempfile = "3"
+soul_msg = { path = ".." }

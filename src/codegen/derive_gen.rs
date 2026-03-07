@@ -26,49 +26,8 @@ impl CodeGenerator for DeriveGenerator {
             .map(generate_message_meta)
             .collect();
 
-        let envelope_impls: Vec<proc_macro2::TokenStream> = smsg_file
-            .messages
-            .iter()
-            .map(generate_smsg_envelope_impl)
-            .collect();
-
-        let trait_def = quote! {
-            pub trait MessageMeta {
-                fn version_hash() -> [u8; 32];
-                fn message_name() -> &'static str;
-            }
-        };
-
-        let generic_envelope = generate_generic_smsg_envelope();
-
         quote! {
-            #trait_def
             #(#message_impls)*
-            #generic_envelope
-            #(#envelope_impls)*
-        }
-    }
-}
-
-fn generate_generic_smsg_envelope() -> proc_macro2::TokenStream {
-    quote! {
-        #[derive(Debug, Clone, PartialEq)]
-        pub struct SmsgEnvelope<T> {
-            pub version_hash: [u8; 32],
-            pub payload: T,
-        }
-
-        impl<T: MessageMeta> SmsgEnvelope<T> {
-            pub fn new(payload: T) -> Self {
-                Self {
-                    version_hash: T::version_hash(),
-                    payload,
-                }
-            }
-
-            pub fn into_parts(self) -> ([u8; 32], T) {
-                (self.version_hash, self.payload)
-            }
         }
     }
 }
@@ -79,42 +38,13 @@ fn generate_message_meta(message: &MessageDef) -> proc_macro2::TokenStream {
     let message_name = message.name.as_str();
 
     quote! {
-        impl MessageMeta for #struct_name {
+        impl ::soul_msg::MessageMeta for #struct_name {
             fn version_hash() -> [u8; 32] {
                 [#(#hash),*]
             }
 
             fn message_name() -> &'static str {
                 #message_name
-            }
-        }
-    }
-}
-
-fn generate_smsg_envelope_impl(message: &MessageDef) -> proc_macro2::TokenStream {
-    let struct_name = Ident::new(&message.name, proc_macro2::Span::call_site());
-    let envelope_name = Ident::new(
-        &format!("{}Envelope", message.name),
-        proc_macro2::Span::call_site(),
-    );
-
-    quote! {
-        #[derive(Debug, Clone, PartialEq)]
-        pub struct #envelope_name {
-            pub version_hash: [u8; 32],
-            pub payload: #struct_name,
-        }
-
-        impl #envelope_name {
-            pub fn new(payload: #struct_name) -> Self {
-                Self {
-                    version_hash: #struct_name::version_hash(),
-                    payload,
-                }
-            }
-
-            pub fn into_parts(self) -> ([u8; 32], #struct_name) {
-                (self.version_hash, self.payload)
             }
         }
     }

@@ -2465,6 +2465,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
+name = "smsg_macro"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "miette",
+ "proc-macro2",
+ "quote",
+ "soul_msg",
+ "syn 2.0.117",
+ "tempfile",
+ "thiserror 2.0.18",
+ "toml",
+ "winnow",
+ "zenoh-ext",
+]
+
+[[package]]
 name = "socket2"
 version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2488,15 +2505,7 @@ dependencies = [
 name = "soul_msg"
 version = "0.1.0"
 dependencies = [
- "blake3",
- "miette",
- "proc-macro2",
- "quote",
- "syn 2.0.117",
- "tempfile",
- "thiserror 2.0.18",
- "toml",
- "winnow",
+ "smsg_macro",
  "zenoh-ext",
 ]
 
