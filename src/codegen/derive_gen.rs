@@ -29,7 +29,7 @@ impl CodeGenerator for DeriveGenerator {
         let envelope_impls: Vec<proc_macro2::TokenStream> = smsg_file
             .messages
             .iter()
-            .map(generate_smsg_envelope)
+            .map(generate_smsg_envelope_impl)
             .collect();
 
         let trait_def = quote! {
@@ -39,10 +39,36 @@ impl CodeGenerator for DeriveGenerator {
             }
         };
 
+        let generic_envelope = generate_generic_smsg_envelope();
+
         quote! {
             #trait_def
             #(#message_impls)*
+            #generic_envelope
             #(#envelope_impls)*
+        }
+    }
+}
+
+fn generate_generic_smsg_envelope() -> proc_macro2::TokenStream {
+    quote! {
+        #[derive(Debug, Clone, PartialEq)]
+        pub struct SmsgEnvelope<T> {
+            pub version_hash: [u8; 32],
+            pub payload: T,
+        }
+
+        impl<T: MessageMeta> SmsgEnvelope<T> {
+            pub fn new(payload: T) -> Self {
+                Self {
+                    version_hash: T::version_hash(),
+                    payload,
+                }
+            }
+
+            pub fn into_parts(self) -> ([u8; 32], T) {
+                (self.version_hash, self.payload)
+            }
         }
     }
 }
@@ -65,7 +91,7 @@ fn generate_message_meta(message: &MessageDef) -> proc_macro2::TokenStream {
     }
 }
 
-fn generate_smsg_envelope(message: &MessageDef) -> proc_macro2::TokenStream {
+fn generate_smsg_envelope_impl(message: &MessageDef) -> proc_macro2::TokenStream {
     let struct_name = Ident::new(&message.name, proc_macro2::Span::call_site());
     let envelope_name = Ident::new(
         &format!("{}Envelope", message.name),
