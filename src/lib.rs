@@ -1,5 +1,6 @@
 mod codegen;
 mod error;
+mod hash;
 mod ir;
 mod parser;
 

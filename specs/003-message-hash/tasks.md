@@ -17,14 +17,14 @@ Phase 1 (Setup)
 
 ## Phase 1: Setup
 
-- [ ] T001 Add blake3 dependency to Cargo.toml in dependencies section
-- [ ] T002 Run cargo fetch to verify blake3 dependency resolves
+- [X] T001 Add blake3 dependency to Cargo.toml in dependencies section
+- [X] T002 Run cargo fetch to verify blake3 dependency resolves
 
 ## Phase 2: Foundational
 
-- [ ] T003 Create hash module src/hash.rs with blake3 hash computation function
-- [ ] T004 Add hash module to lib.rs: `mod hash;`
-- [ ] T005 Add derive module for MessageMeta generation in codegen/derive_gen.rs
+- [X] T003 Create hash module src/hash.rs with blake3 hash computation function
+- [X] T004 Add hash module to lib.rs: `mod hash;`
+- [X] T005 Add derive module for MessageMeta generation in codegen/derive_gen.rs
 
 ## Phase 3: User Story 3 - Access Hashes via MessageMeta Trait (P3)
 
@@ -34,14 +34,14 @@ Phase 1 (Setup)
 
 **Implementation**:
 
-- [ ] T006 [P] [US3] Define MessageMeta trait in src/codegen/derive_gen.rs
-- [ ] T007 [P] [US3] Implement MessageMeta trait generation in derive_gen.rs for each struct
-- [ ] T008 [US3] Generate version_hash() returning [u8; 32] - hardcoded hash from struct definition
-- [ ] T009 [US3] Generate message_name() returning &'static str
-- [ ] T010 [US3] Integrate MessageMeta generation into lib.rs smsg macro flow
-- [ ] T019 Add SmsgEnvelope<T> wrapper type generation to derive_gen.rs
-- [ ] T020 Implement SmsgEnvelope::new() calling MessageMeta::version_hash()
-- [ ] T021 Implement SmsgEnvelope::into_parts() method
+- [X] T006 [P] [US3] Define MessageMeta trait in src/codegen/derive_gen.rs
+- [X] T007 [P] [US3] Implement MessageMeta trait generation in derive_gen.rs for each struct
+- [X] T008 [US3] Generate version_hash() returning [u8; 32] - hardcoded hash from struct definition
+- [X] T009 [US3] Generate message_name() returning &'static str
+- [X] T010 [US3] Integrate MessageMeta generation into lib.rs smsg macro flow
+- [X] T019 Add SmsgEnvelope<T> wrapper type generation to derive_gen.rs
+- [X] T020 Implement SmsgEnvelope::new() calling MessageMeta::version_hash()
+- [X] T021 Implement SmsgEnvelope::into_parts() method
 
 ## Phase 4: User Story 1 - Verify Message Compatibility Between Endpoints (P1)
 
@@ -51,13 +51,13 @@ Phase 1 (Setup)
 
 **Implementation**:
 
-- [ ] T011 [P] [US1] Define CompatibilityStatus enum (Match, Mismatch)
-- [ ] T012 [P] [US1] Define MismatchDetail struct for error reporting
-- [ ] T013 [US1] Implement hash comparison function in src/hash.rs
-- [ ] T014 [US1] Generate CompatibilityReport from comparison result
-- [ ] T022 [P] [US1] Define HashError enum in src/error.rs for hash computation failures
-- [ ] T023 [US1] Implement error messages for hash computation failures (FR-004)
-- [ ] T024 [US1] Implement error messages for hash comparison failures (FR-004)
+- [X] T011 [P] [US1] Define CompatibilityStatus enum (Match, Mismatch)
+- [X] T012 [P] [US1] Define MismatchDetail struct for error reporting
+- [X] T013 [US1] Implement hash comparison function in src/hash.rs
+- [X] T014 [US1] Generate CompatibilityReport from comparison result
+- [X] T022 [P] [US1] Define HashError enum in src/error.rs for hash computation failures
+- [X] T023 [US1] Implement error messages for hash computation failures (FR-004)
+- [X] T024 [US1] Implement error messages for hash comparison failures (FR-004)
 
 ## Phase 5: User Story 2 - Detect Message Package Changes (P2)
 
@@ -67,17 +67,17 @@ Phase 1 (Setup)
 
 **Implementation**:
 
-- [ ] T015 [US2] Hash generation must include all struct fields in canonical order
-- [ ] T016 [US2] Test that field addition/removal changes hash
-- [ ] T017 [US2] Test that field type change changes hash
-- [ ] T018 [US2] Test that field name change changes hash
-- [ ] T025 [US2] Handle endpoints with different message counts gracefully (FR-006)
+- [X] T015 [US2] Hash generation must include all struct fields in canonical order
+- [X] T016 [US2] Test that field addition/removal changes hash
+- [X] T017 [US2] Test that field type change changes hash
+- [X] T018 [US2] Test that field name change changes hash
+- [X] T025 [US2] Handle endpoints with different message counts gracefully (FR-006)
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T026 Run cargo clippy and fix warnings
-- [ ] T027 Run cargo test and ensure all tests pass
-- [ ] T028 [P] Verify test coverage meets 80% threshold for core business logic (Constitution III)
+- [X] T026 Run cargo clippy and fix warnings
+- [X] T027 Run cargo test and ensure all tests pass
+- [X] T028 [P] Verify test coverage meets 80% threshold for core business logic (Constitution III)
 
 ## Parallel Execution Opportunities
 

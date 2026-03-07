@@ -82,6 +82,7 @@ impl fmt::Display for PackageError {
 impl std::error::Error for PackageError {}
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum ImportError {
     InvalidPackageName(String),
     MalformedSyntax(String),
@@ -101,3 +102,29 @@ impl fmt::Display for ImportError {
 }
 
 impl std::error::Error for ImportError {}
+
+#[allow(dead_code)]
+#[derive(Debug)]
+pub enum HashError {
+    ComputationFailed(String),
+    ComparisonFailed(String),
+    InvalidHashLength(usize),
+}
+
+impl fmt::Display for HashError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            HashError::ComputationFailed(msg) => {
+                write!(f, "Hash computation failed: {}", msg)
+            }
+            HashError::ComparisonFailed(msg) => {
+                write!(f, "Hash comparison failed: {}", msg)
+            }
+            HashError::InvalidHashLength(len) => {
+                write!(f, "Invalid hash length: {} bytes (expected 32)", len)
+            }
+        }
+    }
+}
+
+impl std::error::Error for HashError {}
