@@ -225,9 +225,10 @@ mod smsg_envelope_tests {
         };
 
         let envelope = SmsgEnvelope::new(msg);
-        let (hash, payload) = envelope.into_parts();
+        let (version_hash, name_hash, payload) = envelope.into_parts();
 
-        assert_eq!(hash, test_messages::ChatMessage::version_hash());
+        assert_eq!(version_hash, test_messages::ChatMessage::version_hash());
+        assert_eq!(name_hash, test_messages::ChatMessage::name_hash());
         assert_eq!(payload.sender, "Bob");
         assert_eq!(payload.content, "Test");
         assert_eq!(payload.timestamp, 999);
@@ -595,5 +596,151 @@ mod smsg_envelope_tests {
 
         let expected_hash = test_messages::ChatMessage::version_hash();
         assert!(verify_version(msg, expected_hash));
+    }
+}
+
+mod version_mismatch_tests {
+    use super::*;
+
+    #[smsg(category = file, path = "tests/fixtures/messages_old.smsg")]
+    pub mod old_messages {}
+
+    #[smsg(category = file, path = "tests/fixtures/messages.smsg")]
+    pub mod new_messages {}
+
+    #[test]
+    fn test_version_hash_changes_when_schema_changes() {
+        let old_chat = old_messages::ChatMessage {
+            sender: "Test".to_string(),
+            content: "Hello".to_string(),
+            timestamp: 123,
+            version: 1,
+        };
+        let old_envelope = SmsgEnvelope::new(old_chat);
+
+        let new_chat = new_messages::ChatMessage {
+            sender: "Test".to_string(),
+            content: "Hello".to_string(),
+            timestamp: 123,
+        };
+        let new_envelope = SmsgEnvelope::new(new_chat);
+
+        assert_ne!(*old_envelope.version_hash(), *new_envelope.version_hash());
+    }
+
+    #[test]
+    fn test_name_hash_identifies_message_type() {
+        let old_chat = old_messages::ChatMessage {
+            sender: "Test".to_string(),
+            content: "Hello".to_string(),
+            timestamp: 123,
+            version: 1,
+        };
+        let old_envelope = SmsgEnvelope::new(old_chat);
+
+        let new_chat = new_messages::ChatMessage {
+            sender: "Test".to_string(),
+            content: "Hello".to_string(),
+            timestamp: 123,
+        };
+        let new_envelope = SmsgEnvelope::new(new_chat);
+
+        assert_eq!(*old_envelope.name_hash(), *new_envelope.name_hash());
+    }
+
+    #[test]
+    fn test_different_message_types_have_different_name_hashes() {
+        let chat = new_messages::ChatMessage {
+            sender: "Test".to_string(),
+            content: "Hello".to_string(),
+            timestamp: 123,
+        };
+        let chat_envelope = SmsgEnvelope::new(chat);
+
+        let pos = new_messages::Position {
+            x: 1.0,
+            y: 2.0,
+            z: 3.0,
+        };
+        let pos_envelope = SmsgEnvelope::new(pos);
+
+        assert_ne!(*chat_envelope.name_hash(), *pos_envelope.name_hash());
+    }
+
+    #[test]
+    fn test_version_verify_method() {
+        let msg = new_messages::ChatMessage {
+            sender: "Test".to_string(),
+            content: "Version check".to_string(),
+            timestamp: 456,
+        };
+        let envelope = SmsgEnvelope::new(msg);
+
+        let correct_version = new_messages::ChatMessage::version_hash();
+        assert!(envelope.verify_version(&correct_version));
+
+        let wrong_version = old_messages::ChatMessage::version_hash();
+        assert!(!envelope.verify_version(&wrong_version));
+    }
+
+    #[test]
+    fn test_name_verify_method() {
+        let msg = new_messages::ChatMessage {
+            sender: "Test".to_string(),
+            content: "Name check".to_string(),
+            timestamp: 789,
+        };
+        let envelope = SmsgEnvelope::new(msg);
+
+        let correct_name_hash = new_messages::ChatMessage::name_hash();
+        assert!(envelope.verify_name(&correct_name_hash));
+
+        let wrong_name_hash = new_messages::Position::name_hash();
+        assert!(!envelope.verify_name(&wrong_name_hash));
+    }
+
+    #[test]
+    fn test_serialize_with_old_version_store_hash_for_later_verification() {
+        let original_msg = old_messages::ChatMessage {
+            sender: "Alice".to_string(),
+            content: "Old message".to_string(),
+            timestamp: 1000,
+            version: 1,
+        };
+
+        let envelope = SmsgEnvelope::new(original_msg);
+        let stored_version_hash = *envelope.version_hash();
+        let stored_name_hash = *envelope.name_hash();
+
+        let serialized = z_serialize(&envelope.payload);
+
+        let new_msg = new_messages::ChatMessage {
+            sender: "Alice".to_string(),
+            content: "Old message".to_string(),
+            timestamp: 1000,
+        };
+        let new_envelope = SmsgEnvelope::new(new_msg);
+
+        assert_ne!(stored_version_hash, *new_envelope.version_hash());
+        assert_eq!(stored_name_hash, *new_envelope.name_hash());
+
+        assert!(!new_envelope.verify_version(&stored_version_hash));
+        assert!(new_envelope.verify_name(&stored_name_hash));
+    }
+
+    #[test]
+    fn test_into_parts_includes_name_hash() {
+        let msg = new_messages::RobotState {
+            name: "Bot".to_string(),
+            position: new_messages::Position { x: 1.0, y: 2.0, z: 3.0 },
+            status: 5,
+        };
+        let envelope = SmsgEnvelope::new(msg);
+
+        let (version_hash, name_hash, payload) = envelope.into_parts();
+
+        assert_eq!(version_hash, new_messages::RobotState::version_hash());
+        assert_eq!(name_hash, new_messages::RobotState::name_hash());
+        assert_eq!(payload.name, "Bot");
     }
 }

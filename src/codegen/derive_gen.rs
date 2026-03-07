@@ -34,13 +34,19 @@ impl CodeGenerator for DeriveGenerator {
 
 fn generate_message_meta(message: &MessageDef) -> proc_macro2::TokenStream {
     let struct_name = Ident::new(&message.name, proc_macro2::Span::call_site());
-    let hash = compute_message_hash(message);
+    let version_hash = compute_message_hash(message);
+    let name_hash_arr = blake3::hash(message.name.as_bytes());
+    let name_hash = name_hash_arr.as_bytes();
     let message_name = message.name.as_str();
 
     quote! {
         impl ::soul_msg::MessageMeta for #struct_name {
             fn version_hash() -> [u8; 32] {
-                [#(#hash),*]
+                [#(#version_hash),*]
+            }
+
+            fn name_hash() -> [u8; 32] {
+                [#(#name_hash),*]
             }
 
             fn message_name() -> &'static str {
