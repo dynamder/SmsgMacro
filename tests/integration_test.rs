@@ -282,7 +282,7 @@ mod version_mismatch_tests {
         let stored_version_hash = *envelope.version_hash();
         let stored_name_hash = *envelope.name_hash();
 
-        let serialized = z_serialize(&envelope.payload);
+        let _serialized = z_serialize(&envelope.payload);
 
         let new_msg = new_messages::ChatMessage {
             sender: "Alice".to_string(),
