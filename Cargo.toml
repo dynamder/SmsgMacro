@@ -1,5 +1,5 @@
 [package]
-name = "soul_msg"
+name = "smsg_macro"
 version = "0.1.0"
 edition = "2024"
 
@@ -14,6 +14,11 @@ miette = { version = "7", features = ["fancy"] }
 thiserror = "2.0"
 zenoh-ext = "1.7"
 winnow = "0.7"
+toml = "0.8"
+blake3 = "1.5"
 
 [dev-dependencies]
 zenoh-ext = "1.7"
+toml = "0.8"
+tempfile = "3"
+soul_msg = { path = ".." }

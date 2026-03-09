@@ -1,5 +1,8 @@
+pub mod package_parser;
+pub mod import_resolver;
+
 use crate::error::SmsgParseError;
-use crate::ir::{Field, FieldType, MessageDef, PrimitiveType, SmsgFile};
+use crate::ir::{Field, FieldType, ImportStatement, MessageDef, PrimitiveType, SmsgFile};
 use winnow::ascii::{alpha1, digit0, multispace0, multispace1};
 use winnow::combinator::opt;
 use winnow::error::{ErrMode, InputError};
@@ -168,6 +171,70 @@ fn parse_field_type(type_str: &str) -> Result<FieldType, SmsgParseError> {
     Ok(FieldType::Nested(type_str.to_string()))
 }
 
+#[allow(dead_code)]
+pub fn parse_import(input: &str) -> Result<ImportStatement, SmsgParseError> {
+    let trimmed = input.trim();
+    let mut remaining = trimmed;
+
+    "import".parse_next(&mut remaining)
+        .map_err(|_: ErrMode<WinnowError<'_>>| SmsgParseError::new("Expected 'import' keyword".to_string(), 1, 1))?;
+    
+    multispace1.parse_next(&mut remaining)
+        .map_err(|_: ErrMode<WinnowError<'_>>| SmsgParseError::new("Expected whitespace after 'import'".to_string(), 1, 1))?;
+
+    let package: &str = take_while(1.., |c: char| c.is_ascii_alphanumeric() || c == '_')
+        .parse_next(&mut remaining)
+        .map_err(|_: ErrMode<WinnowError<'_>>| SmsgParseError::new("Invalid package name".to_string(), 1, 1))?;
+
+    if remaining.is_empty() {
+        return Err(SmsgParseError::new(
+            "Import must contain package and message type".to_string(), 
+            1, 1
+        ));
+    }
+
+    if !remaining.starts_with('.') {
+        return Err(SmsgParseError::new(
+            "Expected '.' after package name".to_string(), 
+            1, 1
+        ));
+    }
+
+    ".".parse_next(&mut remaining)
+        .map_err(|_: ErrMode<WinnowError<'_>>| SmsgParseError::new("Expected '.' after package name".to_string(), 1, 1))?;
+
+    if remaining.is_empty() {
+        return Err(SmsgParseError::new(
+            "Import must contain message type".to_string(), 
+            1, 1
+        ));
+    }
+
+    let all_parts: Vec<&str> = remaining
+        .split('.')
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    if all_parts.is_empty() {
+        return Err(SmsgParseError::new(
+            "Import must contain message type".to_string(), 
+            1, 1
+        ));
+    }
+
+    let message_type = all_parts[all_parts.len() - 1].to_string();
+    let module_parts: Vec<String> = all_parts[..all_parts.len() - 1]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+
+    Ok(ImportStatement {
+        package: package.to_string(),
+        module_path: module_parts,
+        message_type,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -210,5 +277,107 @@ message RobotState {
 }"#;
         let result = parse_smsg(input).unwrap();
         assert_eq!(result.messages.len(), 2);
+    }
+
+    #[test]
+    fn test_parse_error_invalid_keyword() {
+        let input = r#"msg ChatMessage {
+    string sender
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.message.contains("Parse error") || err.message.contains("message"));
+        assert!(err.line > 0);
+    }
+
+    #[test]
+    fn test_parse_error_missing_brace() {
+        let input = r#"message ChatMessage 
+    string sender
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.line > 0);
+    }
+
+    #[test]
+    fn test_parse_error_missing_field_name() {
+        let input = r#"message ChatMessage {
+    string 
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.line > 0);
+    }
+
+    #[test]
+    fn test_parse_error_unclosed_bracket() {
+        let input = r#"message ChatMessage {
+    string[ sender
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.line > 0);
+    }
+
+    #[test]
+    fn test_parse_error_empty_message_name() {
+        let input = r#"message  {
+    string sender
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_error_invalid_array_size() {
+        let input = r#"message ChatMessage {
+    string[abc] field1
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.message.contains("array") || err.message.contains("Parse error"));
+    }
+
+    #[test]
+    fn test_parse_error_missing_closing_bracket() {
+        let input = r#"message ChatMessage {
+    string sender"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.line > 0);
+    }
+
+    #[test]
+    fn test_error_message_contains_line_info() {
+        let input = r#"message TestMessage {
+    invalid_syntax here is some more text to trigger error
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        let err_str = err.to_string();
+        assert!(err_str.contains("line") || err_str.contains("column"));
+    }
+
+    #[test]
+    fn test_parse_error_duplicate_message() {
+        let input = r#"message ChatMessage {
+    string sender
+}
+
+message ChatMessage {
+    string content
+}"#;
+        let result = parse_smsg(input);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.message.contains("Duplicate") || err.message.contains("already exists"));
     }
 }

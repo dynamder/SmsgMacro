@@ -102,3 +102,49 @@ impl fmt::Display for FieldType {
         }
     }
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SmsgPackage {
+    pub name: String,
+    pub version: String,
+    pub edition: String,
+    pub dependencies: Vec<Dependency>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Dependency {
+    pub name: String,
+    pub path: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ModuleStructure {
+    pub root_module: Module,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Module {
+    pub name: String,
+    pub path: String,
+    pub messages: Vec<MessageDef>,
+    pub children: Vec<Module>,
+}
+
+impl Module {
+    pub fn new(name: String, path: String) -> Self {
+        Self {
+            name,
+            path,
+            messages: Vec::new(),
+            children: Vec::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+#[allow(dead_code)]
+pub struct ImportStatement {
+    pub package: String,
+    pub module_path: Vec<String>,
+    pub message_type: String,
+}
