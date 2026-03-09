@@ -4,6 +4,9 @@ message ChatMessage {
     int64 timestamp
 }
 
+message EmptyMessage {
+}
+
 message Position {
     float64 x
     float64 y
