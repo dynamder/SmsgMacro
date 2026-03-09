@@ -28,18 +28,18 @@ struct SmsgAttribute {
 impl SmsgAttribute {
     pub fn parse(attr: &str) -> Result<Self, String> {
         let attr = attr.trim();
-        
+
         if attr.starts_with('"') {
             return Ok(SmsgAttribute {
                 category: SmsgCategory::File,
                 path: attr.trim_matches('"').to_string(),
             });
         }
-        
+
         let parts: Vec<&str> = attr.split(',').collect();
         let mut category = SmsgCategory::File;
         let mut path = String::new();
-        
+
         for part in parts {
             let part = part.trim();
             if part.starts_with("category") {
@@ -47,20 +47,27 @@ impl SmsgAttribute {
                 category = match value {
                     "package" => SmsgCategory::Package,
                     "file" => SmsgCategory::File,
-                    _ => return Err(format!("Invalid category: {}. Expected 'file' or 'package'", value)),
+                    _ => {
+                        return Err(format!(
+                            "Invalid category: {}. Expected 'file' or 'package'",
+                            value
+                        ));
+                    }
                 };
             } else if part.starts_with("path") {
-                path = part.split('=').nth(1)
+                path = part
+                    .split('=')
+                    .nth(1)
                     .map(|s| s.trim().trim_matches('"'))
                     .unwrap_or("")
                     .to_string();
             }
         }
-        
+
         if path.is_empty() {
             return Err("path is required".to_string());
         }
-        
+
         Ok(SmsgAttribute { category, path })
     }
 }
@@ -68,7 +75,7 @@ impl SmsgAttribute {
 #[proc_macro_attribute]
 pub fn smsg(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attr_str = attr.to_string();
-    
+
     let smsg_attr = match SmsgAttribute::parse(&attr_str) {
         Ok(a) => a,
         Err(e) => {
@@ -131,11 +138,15 @@ fn generate_file_type(full_path: &std::path::Path, item: TokenStream) -> TokenSt
 
 fn generate_package_type(full_path: &std::path::Path, item: TokenStream) -> TokenStream {
     let package_toml_path = full_path.join("package.toml");
-    
+
     let toml_content = match std::fs::read_to_string(&package_toml_path) {
         Ok(content) => content,
         Err(e) => {
-            let err_msg = format!("Failed to read package.toml '{}': {}", package_toml_path.display(), e);
+            let err_msg = format!(
+                "Failed to read package.toml '{}': {}",
+                package_toml_path.display(),
+                e
+            );
             return TokenStream::from(quote! {
                 compile_error!(#err_msg)
             });
@@ -155,7 +166,11 @@ fn generate_package_type(full_path: &std::path::Path, item: TokenStream) -> Toke
     let smsg_files = match walk_package_directory(full_path) {
         Ok(files) => files,
         Err(e) => {
-            let err_msg = format!("Failed to read package directory '{}': {}", full_path.display(), e);
+            let err_msg = format!(
+                "Failed to read package directory '{}': {}",
+                full_path.display(),
+                e
+            );
             return TokenStream::from(quote! {
                 compile_error!(#err_msg)
             });
